@@ -74,7 +74,6 @@ public class MainWindowController implements IServicesClient {
 
     private ObservableList<Match> matchObservableList;
 
-    private ServicesApplication serv1;
 
     @FXML
     private ProgressBar loadingbar;
@@ -84,7 +83,6 @@ public class MainWindowController implements IServicesClient {
         this.server = server;
         this.user = user;
         this.loginScene = loginScene;
-        initServer();
         initializeLabelUsername();
         initializeObservableLists();
         initializeTableColumn();
@@ -109,26 +107,6 @@ public class MainWindowController implements IServicesClient {
         loadCompetitionData();
     }
 
-    private void initServer() {
-        Properties serverProps=new Properties();
-        try {
-            serverProps.load(MainWindowController.class.getResourceAsStream("/bd.config"));
-        } catch (IOException e) {
-            return;
-        }
-        DataBaseManager dbm = null;
-        try {
-            dbm = new DataBaseManager(serverProps);
-        } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
-        }
-        RepositoryUser userRepo=new RepositoryUser(dbm);
-        RepositoryCompetition repositoryCompetition = new RepositoryCompetition(dbm);
-        RepositoryMatch repositoryMatch = new RepositoryMatch(dbm);
-        RepositoryTicket repositoryTicket = new RepositoryTicket(dbm);
-        serv1=new ServicesApplication(repositoryMatch, repositoryCompetition, repositoryTicket, userRepo);
-    }
-
     private void initializeLabelUsername(){
         labelUsername.setText(user.getUsername());
     }
@@ -137,10 +115,6 @@ public class MainWindowController implements IServicesClient {
         if (comboBoxCompetition.getSelectionModel().getSelectedItem() != null){
             matchObservableList.setAll(server.getAllMatchesFromCompetition(comboBoxCompetition.getSelectionModel().getSelectedItem().getId()));
         }
-    }
-
-    private void initializeCompetitionObservableList(){
-        competitionObservableList.setAll(serv1.getAllCompetition());
     }
 
     private void refreshComboBox(){
@@ -234,7 +208,7 @@ public class MainWindowController implements IServicesClient {
                 alert.show();
             }else{
                 server.addTicket(seats, m.getId(), textFieldCustomerName.getText());
-                clearTextFields(); return;
+                clearTextFields();
             }
         }
         //initializeMatchObservableList();

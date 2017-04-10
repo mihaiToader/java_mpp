@@ -38,12 +38,14 @@ public class ChatServerObjectProxy implements IServerServices {
 
     //private List<Response> responses;
     private BlockingQueue<Response> qresponses;
+    private BlockingQueue<Response> qUpdadeResponses;
     private volatile boolean finished;
 
     public ChatServerObjectProxy(String host, int port) {
         this.host = host;
         this.port = port;
         qresponses=new LinkedBlockingQueue<Response>();
+        qUpdadeResponses = new LinkedBlockingQueue<>();
     }
 
     public void setClient(IServicesClient client) {
@@ -127,6 +129,7 @@ public class ChatServerObjectProxy implements IServerServices {
             input=new ObjectInputStream(connection.getInputStream());
             finished=false;
             startReader();
+            startUpdateHandler();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -138,6 +141,10 @@ public class ChatServerObjectProxy implements IServerServices {
         tw.start();
     }
 
+    private void startUpdateHandler(){
+        Thread tw=new Thread(new HandleUpdateThread());
+        tw.start();
+    }
 
     private void handleUpdate(UpdateResponse update){
         if (update instanceof ReloadMatchesUpdate){
@@ -207,7 +214,7 @@ public class ChatServerObjectProxy implements IServerServices {
         //System.out.println("Request for ticket numbers for match " + idMatch);
         try {
             sendRequest(new SellTicketRequest(numbers, id, customerName));
-            /*Response response = readResponse();
+           /* Response response = readResponse();
             if (response instanceof ErrorResponse){
                 System.out.println(((ErrorResponse) response).getMessage());
             }
@@ -252,30 +259,48 @@ public class ChatServerObjectProxy implements IServerServices {
                     Object response=input.readObject();
                     System.out.println("Get the response:" +response);
                     if (response instanceof UpdateResponse){
-                         handleUpdate((UpdateResponse)response);
-                    }else{
-                        /*responses.add((Response)response);
                         try {
-                            Thread.sleep(1000);
+                            System.out.println("Add handle response to queue");
+                            qUpdadeResponses.put((Response)response);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        synchronized (responses){
-                            responses.notify();
-                        }*/
+                    }else{
                         try {
                             System.out.println("Add response to queue");
                             qresponses.put((Response)response);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();  
+                            e.printStackTrace();
                         }
                     }
                 } catch (SocketException e){
-
+                    System.out.println("Good bye");
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                     closeConnection();
                 }
+            }
+        }
+    }
+
+    private class HandleUpdateThread implements Runnable{
+        public void run() {
+            while (!finished){
+                Response response=null;
+                try{
+                    while (qUpdadeResponses.isEmpty() && !finished){
+                        Thread.sleep(1000);
+                    }
+                    if (!finished){
+                        System.out.println("Waiting for update response:");
+                        response=qUpdadeResponses.take();
+                        System.out.println("Get update response: " + response);
+                        handleUpdate((UpdateResponse)response);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
             }
         }
     }
