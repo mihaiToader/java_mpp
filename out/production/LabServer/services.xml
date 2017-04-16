@@ -31,7 +31,7 @@
 
     <bean class="org.springframework.remoting.rmi.RmiServiceExporter">
         <property name="serviceName" value="Chat"/>
-        <property name="service" ref="serverService"/>
+        <property name="service" ref="serverServices"/>
         <property name="serviceInterface" value="Services.IServerServices"/>
         <property name="servicePort" value="1099"/>
     </bean>

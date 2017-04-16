@@ -7,12 +7,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import networking.objectprotocol.ChatServerObjectProxy;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.IOException;
-import java.util.Properties;
 
 /**
  * Created by Mihai on 03.04.2017.
@@ -26,8 +24,8 @@ public class StartClient extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-        ApplicationContext factory = new ClassPathXmlApplicationContext("services.xml");
-        IServerServices server=(IServerServices)factory.getBean("chatService");
+        ApplicationContext factory = new ClassPathXmlApplicationContext("services2.xml");
+        IServerServices server=(IServerServices)factory.getBean("serverServices");
 
         FXMLLoader loaderMain = new FXMLLoader();
         loaderMain.setLocation(StartClient.class.getResource("/Gui/Login.fxml"));
