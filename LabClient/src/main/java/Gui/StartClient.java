@@ -37,10 +37,9 @@ public class StartClient extends Application {
         }
 
         LoginController loginController = loaderMain.getController();
-
         Scene scene = new Scene(parentMain);
-        loginController.setData(server, primaryStage, scene);
 
+        loginController.setData(server, primaryStage, scene);
         primaryStage.setScene(scene);
         primaryStage.setTitle("^_^ MPP APPLICATION ^_^");
         primaryStage.setResizable(false);

@@ -10,6 +10,7 @@ import persistance.jdbc.RepositoryMatch;
 import persistance.jdbc.RepositoryTicket;
 import persistance.jdbc.RepositoryUser;
 
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.concurrent.ExecutorService;
@@ -96,7 +97,11 @@ public class ServicesApplication implements IServerServices {
         for(IServicesClient sc : clients){
             executor.execute(() -> {
                 System.out.println("Notifying.");
-                sc.initializeMatchObservableList();
+                try {
+                    sc.initializeMatchObservableList();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             });
         }
 

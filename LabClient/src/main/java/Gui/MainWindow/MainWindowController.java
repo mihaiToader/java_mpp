@@ -20,9 +20,12 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
+import java.io.Serializable;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 
 
-public class MainWindowController implements IServicesClient {
+public class MainWindowController extends UnicastRemoteObject implements IServicesClient, Serializable {
     @FXML
     private TableView<Match> tableMatch;
 
@@ -72,7 +75,10 @@ public class MainWindowController implements IServicesClient {
     @FXML
     private ProgressBar loadingbar;
 
-    public void setController(Stage primaryStage, IServerServices server, User user, Scene loginScene){
+    public MainWindowController() throws RemoteException {
+    }
+
+    public void setController(Stage primaryStage, IServerServices server, User user, Scene loginScene) throws RemoteException {
         this.primaryStage = primaryStage;
         this.server = server;
         this.user = user;
@@ -93,7 +99,7 @@ public class MainWindowController implements IServicesClient {
         });
     }
 
-    private void initializeObservableLists(){
+    private void initializeObservableLists() throws RemoteException {
         competitionObservableList = FXCollections.observableArrayList(server.getAllCompetition());
         initializeCompetition();
         matchObservableList = FXCollections.observableArrayList();
@@ -105,7 +111,7 @@ public class MainWindowController implements IServicesClient {
         labelUsername.setText(user.getUsername());
     }
 
-    public void initializeMatchObservableList(){
+    public void initializeMatchObservableList() throws RemoteException{
         if (comboBoxCompetition.getSelectionModel().getSelectedItem() != null){
             matchObservableList.setAll(server.getAllMatchesFromCompetition(comboBoxCompetition.getSelectionModel().getSelectedItem().getId()));
         }
@@ -133,7 +139,7 @@ public class MainWindowController implements IServicesClient {
             });
     }
 
-    private void loadCompetitionData(){
+    private void loadCompetitionData() throws RemoteException {
         Competition c = comboBoxCompetition.getSelectionModel().getSelectedItem();
         if (c != null){
             initializeMatchObservableList();
@@ -148,7 +154,7 @@ public class MainWindowController implements IServicesClient {
     }
 
     @FXML
-    void reloadMatches(ActionEvent event) {
+    void reloadMatches(ActionEvent event) throws RemoteException {
         loadCompetitionData();
     }
 
@@ -164,7 +170,7 @@ public class MainWindowController implements IServicesClient {
     }
 
     @FXML
-    void doRefresh(ActionEvent event) {
+    void doRefresh(ActionEvent event) throws RemoteException {
         textFieldSearch.clear();
         initializeMatchObservableList();
     }

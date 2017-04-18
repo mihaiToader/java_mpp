@@ -16,6 +16,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.rmi.RemoteException;
 
 /**
  * Created by Mihai on 21.03.2017.
@@ -75,6 +76,8 @@ public class LoginController{
         } catch (LabException e) {
             alert.setContentText("Wrong username or password!");
             alert.show();
+        } catch (RemoteException e) {
+            e.printStackTrace();
         }
     }
 
