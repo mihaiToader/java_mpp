@@ -1,6 +1,12 @@
 package persistance.jdbc;
 
 import model.User;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import persistance.IRepository;
 import persistance.IUserRepository;
 
@@ -9,86 +15,76 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Mihai on 14.03.2017.
  */
 public class RepositoryUser implements IUserRepository {
-    private DataBaseManager dbm;
 
-    public RepositoryUser(DataBaseManager dbm) {
-        this.dbm = dbm;
+    private SessionFactory sessionFactory;
+
+    public RepositoryUser() {
+        initialize();
+    }
+
+    private void initialize(){
+        // A SessionFactory is set up once for an application!
+        final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
+                .configure() // configures settings from hibernate.cfg.xml
+                .build();
+        try {
+            sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
+        }
+        catch (Exception e) {
+            // The registry would be destroyed by the SessionFactory, but we had trouble building the SessionFactory
+            // so destroy it manually.
+            StandardServiceRegistryBuilder.destroy( registry );
+        }
     }
 
     @Override
     public void add(User e) {
-        try(PreparedStatement preStmt=dbm.getConn().prepareStatement("insert into User(name,username ,password) values (?,?,?)")){
-            preStmt.setString(1, e.getName());
-            preStmt.setString(3,e.getUsername());
-            preStmt.setString(2,e.getPassword());
 
-            int result=preStmt.executeUpdate();
-        }catch (SQLException ex){
-            System.out.println("Error DB "+ex);
-        }
     }
 
     @Override
     public void delete(Integer id) {
-        try(PreparedStatement preStmt=dbm.getConn().prepareStatement("delete from User where id=?")){
-            preStmt.setInt(1,id);
-            int result=preStmt.executeUpdate();
-        }catch (SQLException ex){
-            System.out.println("Error DB "+ex);
-        }
+
     }
 
     @Override
     public void update(User e, Integer id) {
-        try(PreparedStatement preStmt=dbm.getConn().prepareStatement("update User set name=?, username=?, password=? where id=? ")){
-            preStmt.setString(1,e.getName());
-            preStmt.setString(2,e.getUsername());
-            preStmt.setString(3,e.getPassword());
-            preStmt.setInt(4,id);
-            int result=preStmt.executeUpdate();
-        }catch (SQLException ex){
-            System.out.println("Error DB "+ex);
-        }
+
     }
 
     @Override
     public Iterable<User> getAll() {
-        ArrayList<User> res = new ArrayList<>();
-        try(Statement stmt=dbm.getConn().createStatement()){
-            try(ResultSet rs=stmt.executeQuery("select * from User")){
-                while(rs.next()){
-                    res.add(new User(rs.getInt("id"),rs.getString("name"), rs.getString("username"), rs.getString("password")));
-                }
-            }
-        }catch(SQLException ex){
-            System.err.println(ex.getSQLState());
-            System.err.println(ex.getErrorCode());
-            System.err.println(ex.getMessage());
-        }
-        return res;
+      return null;
     }
 
-    public User validateUser(String username, String password){
-        Integer count = 0;
-        User user = null;
+    public User validateUser(String username, String password) {
+        Session session = sessionFactory.openSession();
+
+        Transaction tx=null;
+        User u = null;
         try{
-            PreparedStatement preparedStatement = dbm.getConn().prepareStatement("Select * From User Where username=? and password=?");
-            preparedStatement.setString(1,username);
-            preparedStatement.setString(2,password);
-            ResultSet rs=preparedStatement.executeQuery();
-            while (rs.next()){
-                count++;
-                user = new User(rs.getInt("id"), rs.getString("name"), rs.getString("username"), rs.getString("password"));
+            tx = session.beginTransaction();
+            List<User> users =
+                    session.createQuery("from User Where username=? and password=?",User.class)
+                            .setParameter(0, username)
+                            .setParameter(1, password)
+                            .list();
+            if (users.size() == 1) {
+                u = users.get(0);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            tx.commit();
+        }catch(RuntimeException ex){
+            if (tx!=null)
+                tx.rollback();
+        }finally{
+            session.close();
         }
-        if (count == 1) return user;
-        return null;
+        return u;
     }
 }

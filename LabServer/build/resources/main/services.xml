@@ -7,7 +7,6 @@
     </bean>
 
     <bean id="repoUser" class="persistance.jdbc.RepositoryUser">
-        <constructor-arg ref="dataBaseManager" />
     </bean>
 
     <bean id="repoCompetition" class="persistance.jdbc.RepositoryCompetition">
@@ -24,9 +23,9 @@
 
     <bean id="serverService" class="Services.ServicesApplication">
         <constructor-arg ref="repoMatch" />
-        <constructor-arg ref="repoUser" />
-        <constructor-arg ref="repoCompetition" />
         <constructor-arg ref="repoTicket" />
+        <constructor-arg ref="repoCompetition" />
+        <constructor-arg ref="repoUser" />
     </bean>
 
     <bean class="org.springframework.remoting.rmi.RmiServiceExporter">
